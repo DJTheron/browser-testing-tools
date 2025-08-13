@@ -3,4 +3,6 @@
 
 Working on some basic tools that can be used to stress test your browser.
 ## basic-tab-opener.html
-This simple HTML script opens many tabs quickly. This can cause your computer's memory to run out and possibly slow your computer down or cause crashes. Please dont run it unless you are prepared for that.
+This simple embedded JS script opens many tabs quickly. This can cause your computer's memory to run out and possibly slow your computer down or cause crashes. Please dont run it unless you are prepared for that.
+## autoplay-block-test.html
+Another simple HTML that 
