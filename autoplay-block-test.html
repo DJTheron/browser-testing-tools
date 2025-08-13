@@ -1,1 +1,19 @@
+<audio id="boom" autoplay>
+    <source src="https://raw.githubusercontent.com/DJTheron/vineboom/main/vine-boom.mp3" type="audio/mpeg">
+  </audio>
 
+<script>
+    window.addEventListener('load', () => {
+      const audio = document.getElementById('boom');
+      const playPromise = audio.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Autoplay was blocked. Trying delayed play.");
+          setTimeout(() => {
+            audio.play().catch(err => console.error("Still blocked:", err));
+          }, 1000); // Retry after 1 second
+        });
+      }
+    });
+</script>
