@@ -6,3 +6,5 @@ Working on some basic tools that can be used to stress test your browser.
 This simple embedded JS script opens many tabs quickly. This can cause your computer's memory to run out and possibly slow your computer down or cause crashes. Please dont run it unless you are prepared for that.
 ## autoplay-block-test.html
 A simple HTML that plays a sound when it opens.
+## autoplay-block-test.html
+A copy of autoplay-block-test.html but it waits to simulate user input and therefore on older browsers bypasses autoplay restrictions.
