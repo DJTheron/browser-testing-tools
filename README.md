@@ -10,5 +10,6 @@ A simple HTML that plays a sound when it opens.
 A copy of autoplay-block-test.html but it waits to simulate user input and therefore on older browsers bypasses autoplay restrictions.
 
 ## run-all-tests.sh
-*WIP* 
+**WIP**
+
 when completed all you need to do is run it and it will run all the programs and give you feedback on the test results.
