@@ -12,4 +12,4 @@ A copy of autoplay-block-test.html but it waits to simulate user input and there
 ## run-all-tests.sh
 **WIP**
 
-when completed all you need to do is run it and it will run all the programs and give you feedback on the test results.
+when completed all you need to do is run it and it will run all the programs and give you feedback on the test results. I am in the process of learning playwright so hopefully then it will be complete.
