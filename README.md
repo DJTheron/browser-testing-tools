@@ -11,13 +11,7 @@ A copy of autoplay-block-test.html but it waits to simulate user input and there
 
 ## run-all-tests.sh
 **WIP**
-<style>
-    .red {
-        color: green;
-}
-<div class="green">
-Oneline install
-</div>
+<span style="color: blue; font-weight: bold;">Oneline Install</span>
 ``` bash
 curl https://raw.githubusercontent.com/DJTheron/browser-testing-tools/refs/heads/main/run-all-tests.sh | bash
 ```
