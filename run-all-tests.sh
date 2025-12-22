@@ -53,6 +53,8 @@ end run' "$bundle_id")
         if open -b "$bundle_id"; then
             echo "Opened app via bundle ID: $bundle_id"
             [ -n "$app_path" ] && echo "App path: $app_path"
+            open -a "$app_path" basic-tab-opener.html
+
         else
             echo "App not found for bundle ID: $bundle_id"
         fi
