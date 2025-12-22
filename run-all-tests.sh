@@ -16,6 +16,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 elif [[ "$OSTYPE" == "darwin"* ]]; then
         echo "-- macOS Detected --"
         plutil -p ~/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist | grep 'https' -b3 |awk 'NR==3 {split($4, arr, "\""); print arr[2]}'
+        
 elif [[ "$OSTYPE" == "cygwin" ]]; then
         echo "-- Windows Detected (Cygwin) --"
         reg query HKEY_CURRENT_USER\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice /v ProgId
@@ -33,3 +34,4 @@ fi
 
 
 # add code to find out whether the browser could block the pop ups by possibly checking what is using the most ram or what processs etc
+
