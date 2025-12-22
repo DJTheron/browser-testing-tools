@@ -1,5 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 echo "Confirm you would like to run all tests (y/n)?"
-read confirm_run_all_tests
+read -r confirm_run_all_tests
 if [ "$confirm_run_all_tests" != "y" ]; then
     echo "Aborting all tests."
     exit 0
@@ -10,28 +13,62 @@ fi
 # Retrieved 2025-12-11, License - CC BY-SA 4.0
 # Modified by DJTheron on 2025-12-11 to suit browser-testing-tools
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        echo "-- Linux Detected --"
-        xdg-settings get default-web-browser | sed 's/\.desktop//'
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "-- macOS Detected --"
-        plutil -p ~/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist | grep 'https' -b3 |awk 'NR==3 {split($4, arr, "\""); print arr[2]}'
-        
-elif [[ "$OSTYPE" == "cygwin" ]]; then
-        echo "-- Windows Detected (Cygwin) --"
-        reg query HKEY_CURRENT_USER\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice /v ProgId
-elif [[ "$OSTYPE" == "msys" ]]; then
-        echo "-- Windows Detected (MinGW) --"
-        reg query HKEY_CURRENT_USER\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice /v ProgId
-elif [[ "$OSTYPE" == "win32" ]]; then
-        echo "-- Windows Detected --"
-        reg query HKEY_CURRENT_USER\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice /v ProgId
-else
-        echo "-- Unknown OS --"
-        exit 1
+if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
+    echo "-- Linux Detected --"
+    xdg-settings get default-web-browser | sed 's/\.desktop//'
+elif [[ "${OSTYPE:-$(uname)}" == "darwin"* ]]; then
+    echo "-- macOS Detected --"
+    bundle_id=$(python3 <<'PY'
+import plistlib, pathlib, sys
 
+plist_path = pathlib.Path.home() / "Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist"
+try:
+    data = plistlib.load(plist_path.open('rb'))
+except Exception:
+    sys.exit(1)
+
+for handler in data.get('LSHandlers', []):
+    if handler.get('LSHandlerURLScheme') in ('http', 'https'):
+        value = handler.get('LSHandlerRoleAll')
+        if value:
+            print(value)
+            sys.exit(0)
+sys.exit(1)
+PY
+    )
+
+    if [ -z "$bundle_id" ]; then
+        echo "Could not determine the default browser bundle ID."
+    else
+        echo "Default browser bundle ID: $bundle_id"
+        app_path=$(osascript -e 'on run argv
+    set bundleId to item 1 of argv
+    try
+        return POSIX path of (path to application id bundleId)
+    on error
+        return ""
+    end try
+end run' "$bundle_id")
+
+        if open -b "$bundle_id"; then
+            echo "Opened app via bundle ID: $bundle_id"
+            [ -n "$app_path" ] && echo "App path: $app_path"
+        else
+            echo "App not found for bundle ID: $bundle_id"
+        fi
+    fi
+elif [[ "${OSTYPE:-$(uname)}" == "cygwin"* ]]; then
+    echo "-- Windows Detected (Cygwin) --"
+    reg query HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice /v ProgId
+elif [[ "${OSTYPE:-$(uname)}" == "msys"* ]]; then
+    echo "-- Windows Detected (MinGW) --"
+    reg query HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice /v ProgId
+elif [[ "${OSTYPE:-$(uname)}" == "win32"* ]]; then
+    echo "-- Windows Detected --"
+    reg query HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice /v ProgId
+else
+    echo "-- Unknown OS --"
+    exit 1
 fi
 
-
 # add code to find out whether the browser could block the pop ups by possibly checking what is using the most ram or what processs etc
-
