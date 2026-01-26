@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Confirm you would like to run all tests (y/n)?"
+echo "-- Confirm you would like to run all tests (y/n)? --"
 read -r confirm_run_all_tests
 if [ "$confirm_run_all_tests" != "y" ]; then
     echo "Aborting all tests."
@@ -14,10 +14,10 @@ fi
 # Modified by DJTheron on 2025-12-11 to suit browser-testing-tools
 
 if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
-    echo "-- Linux Detected --"
+    echo "------------------ Linux Detected ------------------"
     xdg-settings get default-web-browser | sed 's/\.desktop//'
 elif [[ "${OSTYPE:-$(uname)}" == "darwin"* ]]; then
-    echo "-- macOS Detected --"
+    echo "------------------ macOS Detected ------------------"
     bundle_id=$(python3 <<'PY'
 import plistlib, pathlib, sys
 
@@ -34,26 +34,28 @@ for handler in data.get('LSHandlers', []):
             print(value)
             sys.exit(0)
 sys.exit(1)
-PY
-    )
+PY )
 
     if [ -z "$bundle_id" ]; then
         echo "Could not determine the default browser bundle ID."
     else
         echo "Default browser bundle ID: $bundle_id"
         app_path=$(osascript -e 'on run argv
-    set bundleId to item 1 of argv
-    try
-        return POSIX path of (path to application id bundleId)
-    on error
-        return ""
-    end try
-end run' "$bundle_id")
-
+        set bundleId to item 1 of argv
+        try
+            return POSIX path of (path to application id bundleId)
+        on error
+            return ""
+        end try
+        end run' "$bundle_id")
         if open -b "$bundle_id"; then
             echo "Opened app via bundle ID: $bundle_id"
             [ -n "$app_path" ] && echo "App path: $app_path"
+            #measure ram now
             open -a "$app_path" basic-tab-opener.html
+            #measure now
+            wait 5
+            #measure now
 
         else
             echo "App not found for bundle ID: $bundle_id"
