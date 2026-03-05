@@ -27,7 +27,19 @@ if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
         sleep 5
         echo "5 $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')" >> ./memory_pressures.txt
         echo "Memory pressure after running basic-tab-opener.html: $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')"
-        
+
+        open -a "$default_browser" autoplay-block-test.html
+        sleep 5
+        audio_output=$(pactl list sink-inputs | grep -E "State: RUNNING|$default_browser}" || true)
+        if [ -z "$audio_output" ]; then
+            echo "Autoplay block NOT bypassed."
+            echo "Autoplay block NOT bypassed." > ./autoplay_test_results.txt
+            open -a "$default_browser" advanced-autoplay-block-test.html
+        else
+            echo "Autoplay block bypassed."
+            echo "$audio_output"
+            echo "Autoplay block bypassed." > ./autoplay_test_results.txt
+        fi
     fi
 
 elif [[ "${OSTYPE:-$(uname)}" == "darwin"* ]]; then
@@ -74,6 +86,19 @@ PY )
 
             echo "5 $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')" >> ./memory_pressures.txt
             echo "Memory pressure after running basic-tab-opener.html: $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')"
+
+            open -a "$app_path" autoplay-block-test.html
+            sleep 5
+            audio_output=$(system_profiler SPAudioDataType | grep -E "Running|$bundle_id" || true)
+            if [ -z "$audio_output" ]; then
+                echo "Autoplay block NOT bypassed."
+                echo "Autoplay block NOT bypassed." > ./autoplay_test_results.txt
+                open -a "$app_path" advanced-autoplay-block-test.html
+            else
+                echo "Autoplay block bypassed."
+                echo "$audio_output"
+                echo "Autoplay block bypassed." > ./autoplay_test_results.txt
+            fi
 
         else
             echo "App not found for bundle ID: $bundle_id"
