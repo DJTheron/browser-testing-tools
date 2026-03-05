@@ -15,9 +15,24 @@ fi
 
 if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
     echo "------------------ Linux Detected ------------------"
-    xdg-settings get default-web-browser | sed 's/\.desktop//'
+    echo "Current memory pressure: $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')"
+    echo "0 $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')" > ./memory_pressures.txt
+
+    default_browser=$(xdg-settings get default-web-browser 2>/dev/null | cut -d';' -f1 | sed 's/\.desktop$//')
+    if [ -z "$default_browser" ]; then
+        echo "Could not determine the default browser."
+    else
+        echo "Default browser: $default_browser"
+        open -a "$default_browser" basic-tab-opener.html
+        sleep 5
+        echo "5 $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')" >> ./memory_pressures.txt
+        echo "Memory pressure after running basic-tab-opener.html: $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')"
+    fi
+
 elif [[ "${OSTYPE:-$(uname)}" == "darwin"* ]]; then
     echo "------------------ macOS Detected ------------------"
+    echo "Current memory pressure: $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')'"
+    echo "0 $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')" > ./memory_pressures.txt
     bundle_id=$(python3 <<'PY'
 import plistlib, pathlib, sys
 
@@ -51,28 +66,20 @@ PY )
         if open -b "$bundle_id"; then
             echo "Opened app via bundle ID: $bundle_id"
             [ -n "$app_path" ] && echo "App path: $app_path"
-            #measure ram now
+
             open -a "$app_path" basic-tab-opener.html
-            #measure now
-            wait 5
-            #measure now
+
+            sleep 5
+
+            echo "5 $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')" >> ./memory_pressures.txt
+            echo "Memory pressure after running basic-tab-opener.html: $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')"
 
         else
             echo "App not found for bundle ID: $bundle_id"
         fi
     fi
-elif [[ "${OSTYPE:-$(uname)}" == "cygwin"* ]]; then
-    echo "-- Windows Detected (Cygwin) --"
-    reg query HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice /v ProgId
-elif [[ "${OSTYPE:-$(uname)}" == "msys"* ]]; then
-    echo "-- Windows Detected (MinGW) --"
-    reg query HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice /v ProgId
-elif [[ "${OSTYPE:-$(uname)}" == "win32"* ]]; then
-    echo "-- Windows Detected --"
-    reg query HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice /v ProgId
+
 else
-    echo "-- Unknown OS --"
+    echo "-- Windows/Unknown OS --"
     exit 1
 fi
-
-# add code to find out whether the browser could block the pop ups by possibly checking what is using the most ram or what processs etc
