@@ -15,8 +15,9 @@ fi
 
 if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
     echo "------------------ Linux Detected ------------------"
-    echo "Current memory pressure: $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')"
-    echo "0 $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')" > ./memory_pressures.txt
+    mem_before=$(free -m | awk '/^Mem:/ {printf "%d", ($2 - $7) / $2 * 100}')
+    echo "Current memory pressure: ${mem_before}%"
+    echo "0 ${mem_before}%" > ./memory_pressures.txt
 
     default_browser=$(xdg-settings get default-web-browser 2>/dev/null | cut -d';' -f1 | sed 's/\.desktop$//')
     if [ -z "$default_browser" ]; then
@@ -25,8 +26,12 @@ if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
         echo "Default browser: $default_browser"
         open -a "$default_browser" basic-tab-opener.html
         sleep 5
-        echo "5 $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')" >> ./memory_pressures.txt
-        echo "Memory pressure after running basic-tab-opener.html: $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')"
+        mem_after=$(free -m | awk '/^Mem:/ {printf "%d", ($2 - $7) / $2 * 100}')
+        echo "5 ${mem_after}%" >> ./memory_pressures.txt
+        echo "Memory pressure after running basic-tab-opener.html: ${mem_after}%"
+        if [ "$((mem_after - mem_before))" -lt 5 ]; then
+            echo "Memory pressure did not increase significantly -- browser may have blocked tabs/popups."
+        fi
 
         open -a "$default_browser" autoplay-block-test.html
         sleep 5
@@ -44,8 +49,9 @@ if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
 
 elif [[ "${OSTYPE:-$(uname)}" == "darwin"* ]]; then
     echo "------------------ macOS Detected ------------------"
-    echo "Current memory pressure: $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')'"
-    echo "0 $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')" > ./memory_pressures.txt
+    mem_before=$(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d", 100-$NF}')
+    echo "Current memory pressure: ${mem_before}%"
+    echo "0 ${mem_before}%" > ./memory_pressures.txt
     bundle_id=$(python3 <<'PY'
 import plistlib, pathlib, sys
 
@@ -84,8 +90,12 @@ PY )
 
             sleep 5
 
-            echo "5 $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')" >> ./memory_pressures.txt
-            echo "Memory pressure after running basic-tab-opener.html: $(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d%%\n", 100-$NF}')"
+            mem_after=$(memory_pressure | awk 'END{gsub(/%/,"",$NF); printf "%d", 100-$NF}')
+            echo "5 ${mem_after}%" >> ./memory_pressures.txt
+            echo "Memory pressure after running basic-tab-opener.html: ${mem_after}%"
+            if [ "$((mem_after - mem_before))" -lt 5 ]; then
+                echo "Memory pressure did not increase significantly -- browser may have blocked tabs/popups."
+            fi
 
             open -a "$app_path" autoplay-block-test.html
             sleep 5
