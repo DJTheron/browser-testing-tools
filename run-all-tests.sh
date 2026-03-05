@@ -27,6 +27,7 @@ if [[ "${OSTYPE:-$(uname)}" == "linux-gnu"* ]]; then
         sleep 5
         echo "5 $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')" >> ./memory_pressures.txt
         echo "Memory pressure after running basic-tab-opener.html: $(free -m | awk '/^Mem:/ {printf "%d%%\n", ($2 - $7) / $2 * 100}')"
+        
     fi
 
 elif [[ "${OSTYPE:-$(uname)}" == "darwin"* ]]; then
